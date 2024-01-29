@@ -26,11 +26,12 @@ func init() {
 	Env = []string{
 		fmt.Sprintf("CC=%s", ReadEnv("CC")),
 		fmt.Sprintf("CGO_ENABLED=%s", "0"),
-		fmt.Sprintf("GOCACHE=%s", ReadEnv("GOCACHE")),
-		fmt.Sprintf("GOMODCACHE=%s", ReadEnv("GOMODCACHE")),
+		//fmt.Sprintf("GOCACHE=%s", ReadEnv("GOCACHE")),
+		//fmt.Sprintf("GOMODCACHE=%s", ReadEnv("GOMODCACHE")),
 		fmt.Sprintf("GOPRIVATE=%s", ReadEnv("GOPRIVATE")),
 		fmt.Sprintf("PATH=%s:%s", path.Join(ReadEnv("GOVERSION"), "bin"), os.Getenv("PATH")),
-		fmt.Sprintf("GOPATH=%s", ReadEnv("GOPATH")),
+		//fmt.Sprintf("GOPATH=%s", ReadEnv("GOPATH")),
+		//fmt.Sprintf("GOROOT=%s", ReadEnv("GOROOT")),
 		fmt.Sprintf("HOME=%s", os.Getenv("HOME")),
 	}
 }
@@ -44,7 +45,6 @@ func buildInstruct(outdir, fname string, dll bool, x86 bool) error {
 
 	var err error
 
-	err = os.Chdir(outdir)
 	if err != nil {
 		log.Fatalf("Error changing to output dir %v.\n", err)
 	}
@@ -72,6 +72,7 @@ func buildInstruct(outdir, fname string, dll bool, x86 bool) error {
 
 	Env = append(Env, fmt.Sprintf("GOARCH=%s", Arch))
 	Env = append(Env, fmt.Sprintf("GOOS=%s", "windows"))
+	Env = append(Env, fmt.Sprintf("GOTMPDIR=%s", outdir))
 
 	var out bytes.Buffer
 	var stderr bytes.Buffer
@@ -84,6 +85,7 @@ func buildInstruct(outdir, fname string, dll bool, x86 bool) error {
 	}
 	initCmd := exec.Command("go", "mod", "init", strings.ReplaceAll(fname, ".go", ""))
 	initCmd.Env = Env
+	//initCmd.Dir = outdir
 
 	initCmd.Stdout = &out
 	initCmd.Stderr = &stderr
@@ -100,6 +102,7 @@ func buildInstruct(outdir, fname string, dll bool, x86 bool) error {
 	tidyCmd.Env = Env
 	tidyCmd.Stdout = &out
 	tidyCmd.Stderr = &stderr
+	//tidyCmd.Dir = outdir
 	err = tidyCmd.Run()
 	if err != nil {
 		color.Red("[gengo] Woops, something went wrong with go mod tidy:\n")
@@ -138,7 +141,6 @@ func buildFileGo(outdir, fname string, dll bool, x86 bool) (bool, error) {
 		compilerBin = "go"
 	}
 
-	err = os.Chdir(outdir)
 	if err != nil {
 		log.Fatalf("Error changing to output dir %v.\n", err)
 	}
@@ -175,6 +177,7 @@ func buildFileGo(outdir, fname string, dll bool, x86 bool) (bool, error) {
 
 	cmd := exec.Command(compilerBin, command...)
 	cmd.Env = Env
+	cmd.Dir = outdir
 	cmd.Stdout = &out
 	cmd.Stderr = &stderr
 	if dll {
@@ -223,7 +226,6 @@ func buildWasm(outdir, fname string) error {
 	var command []string
 	var err error
 
-	err = os.Chdir(outdir)
 	if err != nil {
 		log.Fatalf("Error changing to output dir %v.\n", err)
 	}
@@ -256,6 +258,7 @@ func buildWasm(outdir, fname string) error {
 
 	initCmd.Stdout = &out
 	initCmd.Stderr = &stderr
+	initCmd.Dir = outdir
 	err = initCmd.Run()
 	if err != nil {
 		color.Red("[gengo] Woops, something went wrong with go mod init, soz.\n")
@@ -269,6 +272,7 @@ func buildWasm(outdir, fname string) error {
 	tidyCmd.Env = Env
 	tidyCmd.Stdout = &out
 	tidyCmd.Stderr = &stderr
+	tidyCmd.Dir = outdir
 	err = tidyCmd.Run()
 	if err != nil {
 		color.Red("[gengo] Woops, something went wrong with go mod tidy:\n")
@@ -278,7 +282,6 @@ func buildWasm(outdir, fname string) error {
 
 	tidyCmd.Wait()
 
-	err = os.Chdir(outdir)
 	if err != nil {
 		log.Fatalf("Error changing to output dir %v.\n", err)
 	}
@@ -294,6 +297,7 @@ func buildWasm(outdir, fname string) error {
 
 	cmd := exec.Command(goBinPath, command...)
 	cmd.Env = Env
+	cmd.Dir = outdir
 	cmd.Stdout = &out
 	cmd.Stderr = &stderr
 
